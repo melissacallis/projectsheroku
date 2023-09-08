@@ -1,0 +1,40 @@
+{% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block body %}
+<div class="container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Are you sure yo want to delete this auction? </strong> {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <h2>Delete Listing</h2>
+
+    <ul>
+        {% for listing in listings %}
+            <li>{{ listing.id }}</li>
+        {% endfor %}
+    </ul>
+
+    <form action="{% url 'auctions:delete_auction' listing.id %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="Delete" class="btn btn-success">
+    </form>
+
+</div>
+<div><br>
+    <form>
+        <a href="{% url 'auctions:your_listing' listing.id %}" class="btn btn-secondary">Cancel</a>
+       
+    </form></div>
+
+{% endblock %}
+
+
+
+

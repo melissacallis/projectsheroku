@@ -1,0 +1,70 @@
+{% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block body %}
+<div class="container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Holy guacamole!</strong> {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <h2>Your Listings:</h2>
+
+    {% if user_listings %}
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Link</th>
+                <th>User</th>
+                <th>Date Created</th>
+                <th>Listing ID</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for listing in user_listings %}
+                <tr>
+                    <td>{{ listing.title }}</td>
+                    <td>{{ listing.description }}</td>
+                    <td>{{ listing.price }}</td>
+                    <td> <img
+                        src="{{ listing.image_url }}"
+                        alt="Trendy Pants and Shoes"
+                        class="img-fluid rounded-start"
+                      /></td>
+                    <td>{{ listing.user }}</td>
+                    <td>{{ listing.created }}</td>
+                    <td>{{ listing.id }}</td>
+                    <td>
+                        <form action="{% url 'auctions:edit_listing' listing.id %}" method="POST">
+                            {% csrf_token %}
+                            <input type="submit" value="Edit" class="btn btn-success">
+                        </form>
+                        <form action="{% url 'auctions:delete_auction' listing.id %}" method="GET">
+                            <input type="submit" value="Close Auction" class="btn btn-danger">
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        <strong>You have not created any auctions, yet.</strong>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+
+
+

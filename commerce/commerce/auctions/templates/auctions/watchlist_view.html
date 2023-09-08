@@ -1,0 +1,88 @@
+{% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+{% endblock %}
+
+{% block body %}
+
+<br>
+{% if no_listings_message %}
+<div class="alert alert-info">
+    {{ no_listings_message }}
+</div>
+
+{% endif %}
+
+  <h1>My Watchlist</h1>
+  {% if watchlist %}
+
+  <table class="table">
+    <thead class="table-light">
+
+      <tr>
+        <th scope="col"></th>
+        <th scope="col">Product </th>
+        <th scope="col">Description</th>
+        <th scope="col">Current Bid</th>
+        <th scope="col"></th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody class="table-group-divider">
+      {% for listing in watchlist.listings.all %}
+      <tr>
+        <th scope="row"><a href="{% url 'auctions:auction_detail' listing.id %}">{{ listing.title }}</a></th>
+        <td><img src="{{ listing.image_url }}" class="img-thumbnail" alt="Listing image"></td>
+
+<td>
+         <!-- Expandable Section Trigger -->
+         <p class="card-text expand-trigger" data-target="expandable-{{ listing.description }}">Click to Expand</p>
+
+         <!-- Content to be Expanded -->
+         <div class="expandable-content" id="expandable-{{ listing.description }}" style="display: none; max-height: 100px; overflow-y: auto;">
+           <p style="max-height: 20px; overflow-y: auto;">{{listing.description}}</p>
+           <!-- Add more content here if needed --></td>
+
+
+
+        <td>{{ listing.price }}</td>
+        <td>
+          <form method="post" action="{% url 'auctions:place_bid' listing.id %}">
+              {% csrf_token %}
+
+              <div class="input-group input-group-sm">
+                  <input type="number" step="0.01" name="bid_amount" id="bid_amount" class="form-control" placeholder="$" required>
+                  <div class="input-group-append">
+                      <button type="submit" class="btn btn-success">Place Bid</button>
+                  </div>
+              </div>
+
+          </form>
+      </td>
+
+
+      <td>
+        <form action="{% url 'auctions:remove_listing' listing.id %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-warning">Remove</button>
+      </form>
+    </td>
+      </tr>
+
+      {% endfor %}
+    </tbody>
+  </table>
+
+
+    </div>
+
+
+  {% else %}
+
+  {% endif %}
+
+
+
+{% endblock %}

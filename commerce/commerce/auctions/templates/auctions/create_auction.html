@@ -1,0 +1,37 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+
+    
+    {%if messages %}
+    {%for message in messages%}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong>Holy guacamole!</strong> {{message}}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {%endfor%}
+    {% endif %}
+      <h1> Add a Listing </h1>
+    <form action="{% url 'auctions:create_auction' %}" method="post">
+        {% csrf_token %}
+
+            {%for field in form%}
+            <div class="form-group">
+                {{field.label}}
+                {{field}}
+
+        </div>
+        {%endfor%}
+
+
+        <div>
+        <input class="btn btn-primary" type="submit" value="Post Auction">
+    </form>
+</div>
+
+    Already have an account? <a href="{% url 'auctions:login' %}">Log In here.</a>
+
+{% endblock %}

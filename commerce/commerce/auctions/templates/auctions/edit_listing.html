@@ -1,0 +1,38 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    <h2>Edit Listing</h2>
+
+    <form action="{% url 'auctions:edit_listing' listing.id %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <input class="form-control" autofocus type="text" name="title" placeholder="title" value="{{ listing.title }}">
+        </div>
+        <div class="form-group">
+            <input class="form-control" type="textbox" name="description" placeholder="description" value="{{ listing.description }}">
+        </div>
+        <div class="form-group">
+            <input class="form-control" type="text" name="price" placeholder="Price" value="{{ listing.price }}">
+
+        </div>
+        <div class="form-group">
+            <input class="form-control" type="text" name="image_url" placeholder="html link" value="{{ listing.image_url }}">
+
+        </div>
+        <div class="form-group">
+            <label for="category">Category:</label>
+            <select class="form-control" id="categories" name="category">
+                {% for value, label in form.category.field.choices %}
+                    <option value="{{ value }}" {% if value == listing.category %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <input type="hidden" name="listing_id" value="{{ listing.id }}">
+        <input class="btn btn-primary" type="submit" value="Update Listing">
+    </form>
+
+{% endblock %}
+
+
+

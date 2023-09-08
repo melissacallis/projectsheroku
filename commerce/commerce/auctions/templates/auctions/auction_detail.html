@@ -1,0 +1,105 @@
+
+{% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block body %}
+
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Great!</strong> {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    </div>
+
+
+
+
+    <div class="card mb-3" style="max-width: 1040px;">
+      <div class="row g-0">
+        <div class="col-md-4">
+          <img
+            src="{{ listing.image_url }}"
+            alt="Trendy Pants and Shoes"
+            class="img-fluid rounded-start"
+          />
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title">{{listing.title}}</h5>
+            <p class="card-text">
+              This is a wider card with supporting text below as a natural lead-in to
+              additional content. This content is a little bit longer. This is a wider card with supporting text below as a natural lead-in to
+              additional content. This content is a little bit longer.
+            </p>
+            <ul class="list-group list-group-light list-group-small">
+              <li class="list-group-item px-4">Bid Amount: ${{listing.price}}</li>
+              <li class="list-group-item px-4">Created by: {{listing.user}}</li>
+
+              <li class="list-group-item px-4"><form method="post" action="{% url 'auctions:watchlist' listing.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger" >Watch this listing</button>
+              </form>
+            </div></li>
+
+            <form method="post" action="{% url 'auctions:place_bid' listing.id %}">
+              {% csrf_token %}
+              <div class="input-group input-group-sm">
+                  <input type="number" step="0.01" name="bid_amount" id="bid_amount" class="form-control" placeholder="$" required>
+                  <div class="input-group-append">
+                      <button type="submit" class="btn btn-success">Place Bid</button> </form>
+            </ul>
+            <p class="card-text">
+              <small class="text-muted">
+                </small>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div>
+
+
+        <div class="card-footer">
+          <div class="container">
+            <div class="row">
+              <div class="col-md-6">
+            <h2>Reviews</h2>
+            <p></p>
+            <div class="comment-section">
+                {% for comment in comments %}
+                <div class="comment-bubble">{{listing.user}}:<br>
+                    {{ comment.text }}
+                </div>
+                {% endfor %}
+            </div>
+          </div>
+
+
+
+          <div class="col-md-6">
+    <form method="post" action="{% url 'auctions:auction_detail' pk=listing.id %}">
+        {% csrf_token %}
+
+        <label for="comment">Leave Your Comments:</label>
+        <br>
+        <textarea id="comment" name="comment" rows="5" cols="50"></textarea>
+        <br>
+        <button type="submit" class="btn btn-success">Submit</button>
+    </form>
+  </div>
+  </div>
+</div>
+
+
+
+
+
+
+{% endblock %}

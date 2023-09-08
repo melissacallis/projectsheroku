@@ -1,0 +1,20 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+<div class="container">
+    <h2>Product:{{ listing.title }}</h2>
+    <p>Listing Description: {{ listing.description }}</p>
+    <p>Current price: ${{ listing.price }}</p>
+    <p>Category: {{ listing.category }}</p>
+    {% if listing.image %}
+    <img src="{{ listing.image.url }}" alt="{{ listing.title }}">
+    {% endif %}
+    {% if user.is_authenticated %}
+    {% if listing.created_by == user %}
+    <a href="{% url 'update_listing' pk=listing.pk %}" class="btn btn-primary">Edit Listing</a>
+    {% endif %}
+    {% endif %}
+</div>
+
+{% endblock %}
