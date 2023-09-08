@@ -21,7 +21,7 @@ from django.shortcuts import render
 from .models import Listing
 from django.core.paginator import Paginator
 
-from django.core.paginator import Paginator
+
 
 
 
