@@ -5,7 +5,6 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Bid
 from datetime import datetime
 from .models import User
 from .forms import ListingForm
@@ -109,7 +108,7 @@ def register(request):
 
 def all_listings(request):
     # Assuming you have a model named 'Listing' that represents your listings
-    listings_list = Listings.objects.all()
+    listings_list = Listing.objects.all()
     paginator = Paginator(listings_list, 10) # Show 6 listings per page
     page_number = request.GET.get('page')
     page_listings = paginator.get_page(page_number)
@@ -117,7 +116,6 @@ def all_listings(request):
     context = {"listings": page_listings}
 
     return render(request, 'auctions/index.html', context)
-
 
 @login_required
 def create_auction(request):
@@ -144,7 +142,7 @@ def create_auction(request):
         form = ListingForm()
         return render(request, 'auctions/create_auction.html', {'form': form, 'categories': categories})
 
-from django.shortcuts import get_object_or_404
+
 
 @login_required
 def my_listings(request, pk, user_id):
@@ -166,12 +164,6 @@ def my_listings(request, pk, user_id):
 
 
 
-
-
-
-
-
-@login_required
 @login_required
 def your_listing(request):
     user_listings = Listing.objects.filter(user=request.user)

@@ -9,11 +9,7 @@ import uuid
 class User(AbstractUser):
     pass
 
-class Bid(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bids")
-    listing = models.ForeignKey('Listing', on_delete=models.CASCADE, related_name="bids")
-    bid_amount = models.DecimalField(max_digits=6, decimal_places=2)
-    timestamp = models.DateTimeField(default=timezone.now)
+
 
 
 class Listing(models.Model):
@@ -34,17 +30,7 @@ class Listing(models.Model):
     live = models.BooleanField(default=True)
     watchers = models.ManyToManyField(User, blank=True, related_name="watchlist")
     created = models.DateTimeField(default=timezone.now, blank=True)
-
-
-    def save(self, *args, **kwargs):
-        # Override the save method to update the current_price when a new bid is placed
-        highest_bid = self.bids.order_by('-bid_amount').first()
-        if highest_bid:
-            self.current_price = highest_bid.bid_amount
-        else:
-            self.current_price = self.starting_price
-        super().save(*args, **kwargs)
-
+    current_price = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
 
 
     def __str__(self):
