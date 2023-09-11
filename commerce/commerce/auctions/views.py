@@ -117,13 +117,14 @@ def all_listings(request):
 
     return render(request, 'auctions/index.html', context)
 
+
 @login_required
 def create_auction(request):
 
-    categories = ListingForm.CATEGORIES # Define your categories here
+    categories = ListingForm.CATEGORIES  # Define your categories here
     if not request.user.is_authenticated:
-        messages.success(request, ('You need to be logged in to view this page.'))
-        #return redirect('login.html')
+        messages.success(request, 'You need to be logged in to view this page.')
+        # return redirect('login.html')
 
     elif request.method == 'POST':
         form = ListingForm(request.POST)
@@ -131,36 +132,52 @@ def create_auction(request):
         if form.is_valid():
 
             listing = form.save(commit=False)
-            listing.user = request.user # Set the created_by field to the current user
+            listing.user = request.user  # Set the created_by field to the current user
             listing.save()
 
-            return render(request, 'auctions/your_listing.html', {'listing': listing})
+            # Redirect to your_listing.html after creating the auction
+            return redirect('auctions:your_listing')
         else:
-            messages.error(request, ('Your submission did not go through. Try again.'))
+            messages.error(request, 'Your submission did not go through. Try again.')
             return render(request, 'auctions/create_auction.html', {'form': form, 'categories': categories})
     else:
         form = ListingForm()
-        return render(request, 'auctions/create_auction.html', {'form': form, 'categories': categories})
+
+    # Query and pass the user's listings to the template
+    user_listings = Listing.objects.filter(user=request.user)
+    return render(request, 'auctions/create_auction.html', {'form': form, 'categories': categories, 'listings': user_listings})
+
+
 
 
 
 @login_required
-def my_listings(request, pk, user_id):
-    listings = Listing.objects.filter(user_id=user_id, pk=pk)
+def my_listings(request, user_id, listing_id=None):
+    # Filter listings based on user_id
+    listings = Listing.objects.filter(user_id=user_id)
+
     if request.method == "POST":
         # User clicked on the "Close Auction" button
-        listing_id = request.POST.get("listing_id")  # Assuming there is a hidden input field in the form containing the listing ID
-        listing = get_object_or_404(Listing, id=listing_id)
-        listing.live = False  # Set the 'live' field to False to indicate the auction is closed
-        listing.save()
-        listing.delete()
-        messages.success(request, f"Auction {listing_id} has been deleted from your listings.")
-        return redirect("auctions:my_listings", user_id=user_id, pk=pk)
+        if listing_id is not None:
+            listing = get_object_or_404(Listing, id=listing_id)
+
+            if listing.user == request.user:
+                # Mark the listing as closed (you might want to set 'live' to False)
+                listing.live = False
+                listing.save()
+                messages.success(request, f"Auction {listing_id} has been closed.")
+            else:
+                messages.error(request, "You don't have permission to close this auction.")
+            
+            # Redirect to the same page but without a specific listing_id
+            return redirect("auctions:my_listings", user_id=user_id)
+
     if not listings:
         no_listings_message = "You have no listings to view."
-        return render(request, "auctions/my_listings.html", {"no_listings_message": no_listings_message, "user_id": user_id, "pk": pk})
+        return render(request, "auctions/my_listings.html", {"no_listings_message": no_listings_message, "user_id": user_id})
 
-    return render(request, "auctions/my_listings.html", {"listings": listings, "user_id": user_id, "pk": pk})
+    return render(request, "auctions/my_listings.html", {"listings": listings, "user_id": user_id})
+
 
 
 
@@ -246,7 +263,7 @@ def place_bid(request, pk):
             if bid_amount > listing.price:
                 listing.price = bid_amount
                 listing.save()
-                messages.success(request, f"Bid placed successfully. Current highest bid: {listing.price}")
+                messages.success(request, f"Bid placed successfully. Current highest bid: ${listing.price}")
                 return redirect('auctions:auction_detail', pk=listing.pk)
             else:
                 messages.error(request, "Your bid should be greater than the current highest bid.")

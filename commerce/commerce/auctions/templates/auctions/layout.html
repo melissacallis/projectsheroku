@@ -82,9 +82,12 @@
                       </li>
                       <li class="nav-item">
                         {% if request.user.is_authenticated %}
-                            {% with desired_pk=request.user.id %}
-                                <a class="nav-link" href="{% url 'auctions:my_listings' pk=desired_pk user_id=request.user.id %}">My Listings</a>
-                            {% endwith %}
+                           
+                        <a href="{% url 'auctions:my_listings' user_id=user_id %}">My Listings</a>
+
+
+
+                          
                         {% endif %}
                     </li>
 
