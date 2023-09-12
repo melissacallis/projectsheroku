@@ -149,15 +149,17 @@ def create_auction(request):
 
 
 
-
-
 @login_required
-def my_listings(request, user_id, listing_id=None):
+def my_listings(request, user_id):
+    # Retrieve the user's ID from the request
+    user_id = request.user.id
+    
     # Filter listings based on user_id
     listings = Listing.objects.filter(user_id=user_id)
 
     if request.method == "POST":
         # User clicked on the "Close Auction" button
+        listing_id = request.POST.get('listing_id')
         if listing_id is not None:
             listing = get_object_or_404(Listing, id=listing_id)
 
@@ -169,14 +171,17 @@ def my_listings(request, user_id, listing_id=None):
             else:
                 messages.error(request, "You don't have permission to close this auction.")
             
-            # Redirect to the same page but without a specific listing_id
-            return redirect("auctions:my_listings", user_id=user_id)
+            # Redirect to the same page
+            return redirect("auctions:my_listings")
 
     if not listings:
         no_listings_message = "You have no listings to view."
-        return render(request, "auctions/my_listings.html", {"no_listings_message": no_listings_message, "user_id": user_id})
+        return render(request, "auctions/my_listings.html", {"no_listings_message": no_listings_message})
 
-    return render(request, "auctions/my_listings.html", {"listings": listings, "user_id": user_id})
+    return render(request, "auctions/my_listings.html", {"listings": listings})
+
+
+
 
 
 

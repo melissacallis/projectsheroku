@@ -31,6 +31,7 @@ class Listing(models.Model):
     watchers = models.ManyToManyField(User, blank=True, related_name="watchlist")
     created = models.DateTimeField(default=timezone.now, blank=True)
     current_price = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
+    bidders = models.ManyToManyField(User, related_name='bid_listings', default=[])
 
 
     def __str__(self):
