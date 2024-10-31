@@ -13,10 +13,10 @@ from django import forms
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from .models import Watchlist
-from .models import Comment
+#from .models import Watchlist
+#from .models import Comment
 from django.shortcuts import render
-from .models import Listing
+from .models import Listing, Bid, Watchlist, Comment
 from django.core.paginator import Paginator
 
 
@@ -181,11 +181,6 @@ def my_listings(request, user_id):
     return render(request, "auctions/my_listings.html", {"listings": listings})
 
 
-
-
-
-
-
 @login_required
 def your_listing(request):
     user_listings = Listing.objects.filter(user=request.user)
@@ -201,10 +196,6 @@ def your_listing(request):
             return redirect("auctions:your_listing")
 
     return render(request, 'auctions/your_listing.html', {'user_listings': user_listings})
-
-
-
-
 
 
 def edit_listing(request, pk):
@@ -242,48 +233,47 @@ def delete_auction(request, pk):
         return render(request, 'auctions/delete_auction.html', {"listing":listing})
 
 def auction_detail(request, pk):
-    listing = get_object_or_404(Listing, id=pk)
-    listing.title = listing.title.capitalize()
+    # Retrieve the listing
+    listing = get_object_or_404(Listing, pk=pk)
 
-    # Assuming you have a related_name 'comments' for the ForeignKey relationship in your Comment model
-    comments = listing.comments.all()
+    # Retrieve all bids related to this listing
+    listing_bids = listing.bids.all().order_by('-created_at')  # All bids on this listing
 
-    if request.method == "POST":
-        # Handle comment submission
-        comment_text = request.POST.get('comment')
-        Comment.objects.create(listing=listing, text=comment_text)
+    # Retrieve all bids made by the current user across all listings
+    user_bids = Bid.objects.filter(user=request.user).order_by('-created_at') if request.user.is_authenticated else []
 
-    return render(request, 'auctions/auction_detail.html', {'listing': listing, 'comments': comments})
-
+    return render(request, 'auctions/auction_detail.html', {
+        'listing': listing,
+        'listing_bids': listing_bids,
+        'user_bids': user_bids,
+    })
 
 @login_required
 def place_bid(request, pk):
     listing = get_object_or_404(Listing, pk=pk)
     if request.method == 'POST':
-        bid_amount = request.POST['bid_amount']
-        if bid_amount:
-            # Convert the string input into an integer value
+        bid_amount = request.POST.get('bid_amount')
+        try:
             bid_amount = float(bid_amount)
-            # Check that the new bid is greater than the current highest bid
-            if bid_amount > listing.price:
-                listing.price = bid_amount
-                listing.save()
-                messages.success(request, f"Bid placed successfully. Current highest bid: ${listing.price}")
-                return redirect('auctions:auction_detail', pk=listing.pk)
-            else:
-                messages.error(request, "Your bid should be greater than the current highest bid.")
-                return redirect('auctions:auction_detail', pk=listing.pk)
-        else:
+        except ValueError:
             messages.error(request, "Please enter a valid bid amount.")
             return redirect('auctions:auction_detail', pk=listing.pk)
-    else:
-        if not request.user.is_authenticated:
-            # Set a message to be shown in the login page
-            messages.error(request, "You must log in to place a bid.")
-            request.session['login_required_message'] = True
-            request.session.modified = True  # Mark the session as modified
+        
+        if bid_amount <= 0:
+            messages.error(request, "Bid amount must be greater than zero.")
+        elif bid_amount <= listing.price:
+            messages.error(request, "Your bid must be greater than the current highest bid.")
+        else:
+            # Update listing price
+            listing.price = bid_amount
+            listing.save()
 
-        return redirect('auctions:login')
+            # Create a new bid instance
+            Bid.objects.create(listing=listing, user=request.user, amount=bid_amount)
+
+            messages.success(request, f"Bid placed successfully. Current highest bid: ${listing.price:.2f}")
+            return redirect('auctions:auction_detail', pk=listing.pk)
+    return redirect('auctions:login')
 
 
 
@@ -339,6 +329,24 @@ def watchlist_view(request):
     watchlist_items = watchlist.listings.all()
 
     return render(request, 'auctions/watchlist_view.html', {'watchlist': watchlist, 'watchlist_items': watchlist_items})
+
+@login_required
+
+def my_bids(request, pk):
+    # Ensure the user is authenticated
+    if not request.user.is_authenticated:
+        return redirect('auctions:login')
+
+    # Retrieve all bids placed by the user
+    user_bids = Bid.objects.filter(user=request.user).select_related('listing').order_by('-created_at')
+
+    # Check if the user has placed any bids
+    if not user_bids.exists():
+        no_bids_message = "You have not placed any bids yet."
+        return render(request, "auctions/my_bids.html", {"no_bids_message": no_bids_message})
+
+    # Render the template with bid history if bids exist
+    return render(request, 'auctions/my_bids.html', {'user_bids': user_bids})
 
 
 

@@ -1,0 +1,56 @@
+{% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block body %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Hey There!</strong> {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% if user_bids %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Listing Title</th>
+                <th>Bid Amount</th>
+                <th>Bidder</th>
+                <th>Date of Bid</th>
+                <th>Listing Link</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bid in user_bids %}
+            <tr>
+                 <!-- Display Listing Image -->
+                 <td>
+                    <img src="{{ bid.listing.image_url }}" alt="Image for {{ bid.listing.title }}" class="img-fluid rounded-start" style="width: 100px; height: auto;">
+                </td>
+                <td>{{ bid.listing.title }}</td>
+                <td>${{ bid.amount }}</td>
+                <td>{{ bid.user.username }}</td>
+                <td>{{ bid.created_at }}</td>
+                <td>
+                    <a href="{% url 'auctions:auction_detail' bid.listing.id %}" class="btn btn-primary">
+                        View Listing
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div class="alert alert-info" role="alert">
+        <strong>You have not placed any bids yet.</strong>
+    </div>
+{% endif %}
+
+
+{% endblock %}

@@ -19,12 +19,14 @@ urlpatterns = [
 
     path('watchlist/<int:pk>', views.remove_listing, name='remove_listing'),
 
-    path('my_listings/<int:user_id>', views.my_listings, name='my_listings'),
+    path('my_listings/<int:pk>', views.my_listings, name='my_listings'),
+    path('my_bids/<int:pk>/', views.my_bids, name='my_bids'),
+]
     #path('my_listings/<int:user_id>/<int:listing_id>/', views.my_listings, name='my_listings_with_listing_id'),
 
 
 
-]
+
 
 
 

@@ -33,7 +33,6 @@ class Listing(models.Model):
     current_price = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
     bidders = models.ManyToManyField(User, related_name='bid_listings', default=[])
 
-
     def __str__(self):
         return self.title
 
@@ -49,7 +48,14 @@ class Comment(models.Model):
     text = models.TextField(max_length=500)
     created = models.DateTimeField(default=timezone.now)
 
+class Bid(models.Model):
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='bids')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.user.username} bid ${self.amount} on {self.listing.title}"
 
 
 
