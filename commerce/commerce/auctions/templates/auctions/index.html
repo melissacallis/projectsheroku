@@ -1,7 +1,6 @@
 {% extends "auctions/layout.html" %}
 {% load static %}
-
-
+{% load custom_filters %}
 
 {% block body %}
 {% if messages %}
@@ -12,161 +11,128 @@
     {% endfor %}
 </div>
 {% endif %}
-
+<!-- Layout Template -->
 <p>Total listings: {{ all_listings.count }}</p>
 
+<!-- Carousel Section -->
 <div id="carouselExampleSlidesOnly" class="carousel slide" data-ride="carousel">
-  <div class="carousel-inner">
-    <div class="carousel-item active">
-      <img class="d-block w-100" src="https://i.ebayimg.com/00/s/MTkwWDEyMDA=/z/1yQAAOSwlO1k~20k/$_57.JPG" alt="First slide">
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img class="d-block w-100" src="https://i.ebayimg.com/00/s/MTkwWDEyMDA=/z/1yQAAOSwlO1k~20k/$_57.JPG" alt="First slide">
+        </div>
+        <div class="carousel-item">
+            <img class="d-block w-100" src="https://i.ebayimg.com/images/g/G5cAAOSwU3Jk7rGp/s-l1600.jpg" alt="Second slide">
+        </div>
+        <div class="carousel-item">
+            <img class="d-block w-100" src="https://i.ebayimg.com/00/s/MTkwWDEyMDA=/z/1yQAAOSwlO1k~20k/$_57.JPG" alt="Third slide">
+        </div>
     </div>
-    <div class="carousel-item">
-      <img class="d-block w-100" src="https://i.ebayimg.com/images/g/G5cAAOSwU3Jk7rGp/s-l1600.jpg" alt="Second slide">
-    </div>
-    <div class="carousel-item">
-      <img class="d-block w-100" src="https://i.ebayimg.com/00/s/MTkwWDEyMDA=/z/1yQAAOSwlO1k~20k/$_57.JPG" alt="Third slide">
-    </div>
-  </div>
 </div>
+<!-- Cards with information  -->
 
-
- 
- 
-
-
-<div class="container-1">
   <div class="row">
+    <div class="row">
       {% for listing in listings %}
-      
-
       <div class="col-lg-4 mb-4">
-
-        <div class="card bg-light" style="width:95%">
-
-        <div class="card-image">
-
-
-          <img
-          src="{{ listing.image_url }}"
-          alt="Trendy Pants and Shoes"
-          class="img-fluid rounded-start"
-          width="215"
-          height="200"
-        />
-        </div>
-
-        <div class="card-body">
-
-          <h4 class="card-title"><a href="{% url 'auctions:auction_detail' listing.id %}">{{ listing.title }}</a> </h4>
-
-
-            <!-- Expandable Section Trigger -->
-            <p class="card-text expand-trigger" data-target="expandable-{{ listing.description }}">-Click to Read-</p>
-
-            <!-- Content to be Expanded -->
-            <div class="expandable-content" id="expandable-{{ listing.description }}" style="display: none; max-height: 100px; overflow-y: auto;">
-              <p style="max-height: 20px; overflow-y: auto;">{{listing.description}}</p>
-              <!-- Add more content here if needed -->
-
-            </div>
-
-            <div class="row">
-            <div class="col">
-              Current Bid:
-              <h3 class="card-title"> ${{listing.price}} </h3>
-            </div>
-            <div class="col">
-              <form method="post" action="{% url 'auctions:watchlist' listing.id %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-danger btn-sm" >Watch this listing</button>
-              </form>
-            </li>
-            </div>
-          </div>
-
-
-
-        </div>
-        <form method="post" action="{% url 'auctions:place_bid' listing.id %}">
-          {% csrf_token %}
-
-          <div class="input-group input-group-sm">
-              <input type="number" step="0.01" name="bid_amount" id="bid_amount" class="form-control" placeholder="$" required>
-              <div class="input-group-append">
-                  <button type="submit" class="btn btn-success">Place Bid</button>
+          <div class="card bg-light position-relative" style="width:95%">
+              
+              <!-- Bid Status Banner -->
+              <div class="position-absolute top-0 start-0 px-3 py-1"
+                   style="background-color: {% if user_bid_status|get_item:listing.id == 'Highest Bidder' %}orange{% elif user_bid_status|get_item:listing.id == 'Bid Placed' %}lightblue{% else %}grey{% endif %}; color: white;">
+                  {{ user_bid_status|get_item:listing.id|default:"No Bid" }}
               </div>
-          </div>
-      </form>
-      <div class="card-footer text-muted">
-        Ends: {{listing.created}}
-      </div>
+            <!-- Card Image -->
+            <div class="card-image">
+                <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="img-fluid rounded-start" width="215" height="200" />
+            </div>
+  
+            <!-- Card Body -->
+            <div class="card-body">
+                <h4 class="card-title">
+                    <a href="{% url 'auctions:auction_detail' listing.id %}">{{ listing.title }}</a>
+                </h4>
+                <p class="card-text">
+                    <span tabindex="0" class="description-popover" data-toggle="popover" data-placement="right" data-content="{{ listing.description }}" title="Description">
+                        Click to Read
+                    </span>
+                </p>
+                <div class="row">
+                    <div class="col">
+                        Current Bid:
+                        <h3 class="card-title"> ${{ listing.price }} </h3>
+                    </div>
+                    <div class="col">
+                      <form method="post" action="{% url 'auctions:watchlist' listing.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn {% if listing.id in user_watchlist %}btn-warning{% else %}btn-outline-danger{% endif %} btn-sm">
+                            {% if listing.id in user_watchlist %}Watching{% else %}Watch this listing{% endif %}
+                        </button>
+                    </form>
+                    </div>
+                </div>
+            </div>
+  
+            <div class="card-footer text-muted">
+                Added on: {{ listing.created }}
+            </div>
         </div>
-      </div>
-
-
-       {% endfor %}
     </div>
+    {% endfor %}
   </div>
-
-<!-- Add this debugging code in your template -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <!-- Your head content goes here -->
-</head>
-<body>
-    <!-- Your navigation, header, and other content goes here -->
-
-    <div class="container">
-        <!-- Display your listings -->
-        <ul>
-            {% for listing in listings %}
-
-            <!-- Include other listing details as needed -->
-            {% endfor %}
-        </ul>
-
-        <!-- Pagination -->
-        <nav aria-label="Page navigation example">
-            <ul class="pagination justify-content-center">
-                {% if listings.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page=1">First</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ listings.previous_page_number }}">Previous</a>
-                </li>
-                {% endif %}
-
-                <li class="page-item"><span class="page-link">{{ listings.number }}</span></li>
-
-                {% if listings.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ listings.next_page_number }}">Next</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ listings.paginator.num_pages }}">Last</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-    </div>
-
-
+  
+  <!-- Popover Initialization Script -->
   <script>
-    // JavaScript to toggle the expandable content
-    const expandTriggers = document.querySelectorAll('.expand-trigger');
-    expandTriggers.forEach(trigger => {
-      trigger.addEventListener('click', () => {
-        const expandableContent = trigger.parentElement.querySelector('.expandable-content');
-        expandableContent.style.display = expandableContent.style.display === 'none' ? 'block' : 'none';
-        trigger.textContent = expandableContent.style.display === 'none' ? 'Click to Expand' : 'Click to Collapse';
-      });
-    });
+  $(document).ready(function(){
+  $('[data-toggle="popover"]').popover({
+    trigger: 'hover',
+    html: true
+  });
+  });
   </script>
 
-
 {% endblock %}
+<!-- Pagination -->
+<!-- Pagination -->
+<div class="container">
+  <nav aria-label="Page navigation example">
+      <ul class="pagination justify-content-center">
+          {% if listings.has_previous %}
+          <li class="page-item">
+              <a class="page-link" href="?page=1">First</a>
+          </li>
+          <li class="page-item">
+              <a class="page-link" href="?page={{ listings.previous_page_number }}">Previous</a>
+          </li>
+          {% endif %}
+
+          <li class="page-item"><span class="page-link">{{ listings.number }}</span></li>
+
+          {% if listings.has_next %}
+          <li class="page-item">
+              <a class="page-link" href="?page={{ listings.next_page_number }}">Next</a>
+          </li>
+          <li class="page-item">
+              <a class="page-link" href="?page={{ listings.paginator.num_pages }}">Last</a>
+          </li>
+          {% endif %}
+      </ul>
+  </nav>
+</div>
+
+<!-- Popover Initialization Script -->
+<script>
+  $(document).ready(function(){
+      $('[data-toggle="popover"]').popover({
+          trigger: 'hover',
+          html: true
+      });
+  });
+</script>
+
+
+
+
+
 
 
 

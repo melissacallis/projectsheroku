@@ -29,10 +29,12 @@
                     <li class="list-group-item px-4">Bid Amount: ${{ listing.price }}</li>
                     <li class="list-group-item px-4">Created by: {{ listing.user }}</li>
                     <li class="list-group-item px-4">
-                        <form method="post" action="{% url 'auctions:watchlist' listing.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-danger">Watch this listing</button>
-                        </form>
+                      <form method="post" action="{% url 'auctions:watchlist' listing.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn {% if listing.id in user_watchlist %}btn-warning{% else %}btn-outline-danger{% endif %} btn-sm">
+                            {% if listing.id in user_watchlist %}Watching{% else %}Watch this listing{% endif %}
+                        </button>
+                    </form>
                     </li>
                 </ul>
 

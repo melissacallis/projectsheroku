@@ -6,64 +6,97 @@
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <strong>Holy guacamole!</strong> {{ message }}
+                <strong>Notification:</strong> {{ message }}
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
+                    <span aria-hidden="true">&times;</span>
                 </button>
             </div>
         {% endfor %}
     {% endif %}
+
     <h2>Your Listings:</h2>
 
     {% if user_listings %}
         <table class="table">
             <thead>
-            <tr>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Price</th>
-                <th>Link</th>
-                <th>User</th>
-                <th>Date Created</th>
-                <th>Listing ID</th>
-                <th>Actions</th>
-            </tr>
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Image</th>
+                    <th>User</th>
+                    <th>Date Created</th>
+                    <th>Listing ID</th>
+                    <th>Actions</th>
+                </tr>
             </thead>
             <tbody>
                 {% for listing in user_listings %}
                 <tr>
                     <td>{{ listing.title }}</td>
-                    <td>{{ listing.description }}</td>
-                    <td>{{ listing.price }}</td>
-                    <td> <img
-                        src="{{ listing.image_url }}"
-                        alt="Trendy Pants and Shoes"
-                        class="img-fluid rounded-start"
-                      /></td>
+
+                    <!-- Popover for Description -->
+                    <td>
+                        <span 
+                            tabindex="0" 
+                            class="description-popover" 
+                            data-toggle="popover" 
+                            data-placement="right" 
+                            data-content="{{ listing.description }}" 
+                            title="Description">
+                            {{ listing.description|truncatewords:10 }}
+                        </span>
+                    </td>
+
+                    <td>${{ listing.price }}</td>
+
+                    <!-- Image display -->
+                    <td>
+                        <img
+                            src="{{ listing.image_url }}"
+                            alt="Image for {{ listing.title }}"
+                            class="img-fluid rounded-start"
+                            style="width: 100px; height: auto;">
+                    </td>
+
                     <td>{{ listing.user }}</td>
                     <td>{{ listing.created }}</td>
                     <td>{{ listing.id }}</td>
                     <td>
-                        <form action="{% url 'auctions:edit_listing' listing.id %}" method="POST">
-                            {% csrf_token %}
-                            <input type="submit" value="Edit" class="btn btn-success">
-                        </form>
-                        <form action="{% url 'auctions:delete_auction' listing.id %}" method="GET">
-                            <input type="submit" value="Close Auction" class="btn btn-danger">
-                        </form>
+                        <!-- Edit and Delete Actions -->
+                        <div class="d-flex flex-column">
+                            <form action="{% url 'auctions:edit_listing' listing.id %}" method="POST" style="margin-bottom: 5px;">
+                                {% csrf_token %}
+                                <input type="submit" value="Edit" class="btn btn-success btn-sm">
+                            </form>
+                            <form action="{% url 'auctions:delete_auction' listing.id %}" method="GET">
+                                <input type="submit" value="Close Auction" class="btn btn-danger btn-sm">
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-    <div class="alert alert-info" role="alert">
-        <strong>You have not created any auctions, yet.</strong>
-    </div>
+        <div class="alert alert-info" role="alert">
+            <strong>You have not created any auctions yet.</strong>
+        </div>
     {% endif %}
 </div>
 
+<!-- Popover Initialization Script -->
+<script>
+    $(document).ready(function(){
+        $('[data-toggle="popover"]').popover({
+            trigger: 'hover', // or 'click' if you prefer click to activate
+            html: true
+        });
+    });
+</script>
+
 {% endblock %}
+
 
 
 

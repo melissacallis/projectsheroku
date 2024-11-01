@@ -13,12 +13,20 @@ from django import forms
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-#from .models import Watchlist
-#from .models import Comment
 from django.shortcuts import render
 from .models import Listing, Bid, Watchlist, Comment
 from django.core.paginator import Paginator
+from django.db.models import Max
+from django.shortcuts import render
+from django.core.paginator import Paginator
+from django.db.models import Max
+from .models import Listing, Bid, Watchlist
 
+
+from django.core.serializers import serialize
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+import json
 
 def index(request):
     category = request.GET.get('category')
@@ -29,22 +37,40 @@ def index(request):
 
     # Retrieve unique categories from the Listing model
     categories = Listing.objects.values_list('category', flat=True).distinct()
-
-    # Set the number of items per page
     items_per_page = 6  # Adjust this as needed
-
     paginator = Paginator(all_listings, items_per_page)
     page_number = request.GET.get('page')
-
     listings = paginator.get_page(page_number)
 
+    # Create a dictionary to store the bid status for each listing
+    user_bid_status = {}
+    user_watchlist = set()  # Store listing IDs in user's watchlist
 
+    # Retrieve the user's watchlist items if they are authenticated
+    if request.user.is_authenticated:
+        watchlist = Watchlist.objects.filter(user=request.user).first()
+        if watchlist:
+            user_watchlist = set(watchlist.listings.values_list('id', flat=True))
+
+    # Loop through each listing to determine bid status and watchlist status
+    for listing in all_listings:
+        highest_bid = listing.bids.aggregate(Max('amount'))['amount__max']
+        user_bid = listing.bids.filter(user=request.user).first() if request.user.is_authenticated else None
+
+        if user_bid:
+            if user_bid.amount == highest_bid:
+                user_bid_status[listing.id] = "Highest Bidder"
+            else:
+                user_bid_status[listing.id] = "Bid Placed"
+        else:
+            user_bid_status[listing.id] = "No Bid"
 
     context = {
         'listings': listings,
         'category': category,
         'categories': categories,
-        
+        'user_bid_status': user_bid_status,
+        'user_watchlist': user_watchlist,  # Pass the watchlist to the context
     }
 
     return render(request, 'auctions/index.html', context)
@@ -232,21 +258,32 @@ def delete_auction(request, pk):
         messages.success(request, f"{listing.id}, {listing.title}")
         return render(request, 'auctions/delete_auction.html', {"listing":listing})
 
+
+
 def auction_detail(request, pk):
     # Retrieve the listing
     listing = get_object_or_404(Listing, pk=pk)
 
     # Retrieve all bids related to this listing
-    listing_bids = listing.bids.all().order_by('-created_at')  # All bids on this listing
+    listing_bids = listing.bids.all().order_by('-created_at')
 
     # Retrieve all bids made by the current user across all listings
     user_bids = Bid.objects.filter(user=request.user).order_by('-created_at') if request.user.is_authenticated else []
+
+    # Check if the listing is in the user's watchlist
+    user_watchlist = set()
+    if request.user.is_authenticated:
+        watchlist = Watchlist.objects.filter(user=request.user).first()
+        if watchlist:
+            user_watchlist = set(watchlist.listings.values_list('id', flat=True))
 
     return render(request, 'auctions/auction_detail.html', {
         'listing': listing,
         'listing_bids': listing_bids,
         'user_bids': user_bids,
+        'user_watchlist': user_watchlist,  # Pass the watchlist to the context
     })
+
 
 @login_required
 def place_bid(request, pk):
